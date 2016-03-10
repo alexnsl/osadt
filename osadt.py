@@ -94,6 +94,7 @@ if nses:
         osa.register_dns(node['backnet'], login, password, node['frontnet'],
             new_hostname=node.get('hostname'))
     osa.create_dns_rt(*ns_hostnames)
+    osa.add_dns_hosting(provdomain)
  
 # UI host
 node = nodes.get('ui')
@@ -111,15 +112,15 @@ if node:
     if 'cp_domain' in globals():
         osa.add_provider_domain(cp_domain)
     else:
-        cp_domain = cp_prefix + provdomain
-        osa.add_provider_subdomain(cp_domain)
+        cp_domain = cp_prefix + '.' + provdomain
+        osa.add_provider_subdomain(provdomain, cp_prefix)
     has_exclusive_ip = 'cp_ip' in globals()
     if has_exclusive_ip:
         # create branding ip pool
         pool_id = osa.create_ip_pool(cp_domain, cp_ip, cp_ip, cp_ipnetmask,
             ['COMMON.BRANDING', 'SHARED.HOSTING'])
         osa.bind_ip_pool(branding_host_id, node['frontnet'], pool_id)
-    create_prov_brand(cp_domain, has_exclusive_ip) 
+    osa.create_prov_brand(cp_domain, has_exclusive_ip) 
  
 ######## BA deployment
 ba = nodes.get('ba')

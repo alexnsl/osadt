@@ -23,6 +23,7 @@ class OSA:
     api_sync_timeout = 30
     register_shared_node_timeout = 600
     install_package_timeout = 300
+    add_dns_hosting_timeout = 330
     check_period = 5
 
     def __init__(self, cp_login='admin', cp_password=None, cp_url='http://127.0.0.1:8080/'):
@@ -144,14 +145,14 @@ class OSA:
         # check if subdomain exists
         subdomain_id, owner_id = self.get_domain(subdomain)
         if subdomain_id:  # subdomain exists
-            # check subdomain subscription
-            res = self.api_async_call_wait('pem.getDomainSubscription',
-                domain_id=subdomain_id)
-            if sub_id == res['subscription_id']:
+            # check that subscription belongs to the same owner
+            res = self.api_async_call_wait('pem.getSubscription',
+                subscription_id=sub_id, get_resources=False)
+            if owner_id == res['owner_id']:
                 return subdomain_id
             else:
-                raise OSAError("Subdomain {0} exists and belongs to different subscription, id: {1}"
-                    .format(subdomain, res['subscription_id']))
+                raise OSAError("Subdomain {0} exists and belongs to different owner, id: {1}. Subscription {2} belongs to {3}"
+                    .format(subdomain, owner_id, sub_id, res['owner_id']))
         else:  # no subdomain, create
             res = self.api_async_call_wait('pem.addSubdomain',
                 subscription_id=sub_id, domain_name=domain, prefix=prefix)
@@ -321,6 +322,26 @@ class OSA:
             refresh=14400, retry=7200, expire=2419200, min_ttl=3600, **_ns_hostnames)
         return self.create_rt('DNS Hosting', 'DNS Hosting', 
             {'auto_host_domains': 'yes', 'configuration_id': str(dns_config_id)})
+
+    def add_dns_hosting(self, domain, dns_rt_id=None, dns_rt_name='DNS Hosting'):
+        """Add dns hosting to domain
+
+        :param dns_rt_id: rt_id of dns hosting resource, optional
+        :param dns_rt_name: name of dns hosting resource, predefined 
+        """
+        dom_id, owner_id = self.get_domain(domain)
+        if not dns_rt_id:
+            dns_rt_id = self.get_rt_id(dns_rt_name, 'DNS Hosting')
+        try:
+            self.api_async_call_wait('pem.addDNSHosting',
+                timeout=self.add_dns_hosting_timeout,
+                domain_id=dom_id, hosting_rt_id=dns_rt_id)
+        except OpenAPIError as err:
+            # already added?
+            if err.module_id == 'dns' and err.extype_id == 2040:
+                return
+            else:
+                raise
 
     def create_brand_web_rt(self, provdomain,
         rt_name='Shared hosting Apache (branding)',
