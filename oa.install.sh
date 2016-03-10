@@ -36,7 +36,7 @@ tar --extract --file=$POATAR --directory=$DISTR
 
 ###### prereqs
 # remove uncompatible java rpms
-rpm -qa '*openjdk*' 'jdk' | xargs rpm -e
+rpm -qa '*openjdk*' 'jdk' | xargs --no-run-if-empty rpm -e
 # update OS
 yum update -y
 # make sure MN hostname resolves propery
