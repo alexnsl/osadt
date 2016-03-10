@@ -30,7 +30,7 @@ fi
 set -e
 
 # download OA distribution
-mkdir $DISTR
+mkdir -p $DISTR
 wget --continue --directory-prefix=$DISTR $POATARURL
 tar --extract --file=$POATAR --directory=$DISTR
 
