@@ -1,5 +1,6 @@
 import time
 import urllib2
+import xmlrpclib
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 
@@ -82,7 +83,7 @@ class OSA:
         if not (url or filename or data):
             raise OSAError("No url or filename or lic were passed")
         if url:
-            lic = urllib2.urlopen(licurl).read()
+            lic = urllib2.urlopen(url).read()
         elif filename:
             with open(filename, "r") as f:
                 lic = f.read()
