@@ -95,6 +95,14 @@ if nses:
             new_hostname=node.get('hostname'))
     osa.create_dns_rt(*ns_hostnames)
     osa.add_dns_hosting(provdomain)
+    # add A records
+    for node in nses:
+        ns_hostname = node['hostname']
+        ns_fip = node['frontnet']
+        # subdomain of provdomain?
+        if ns_hostname.endswith('.' + provdomain):
+            prefix = ns_hostname[:-len(provdomain)-1]
+            osa.add_dns_record(provdomain, prefix, 'A', ns_fip)
  
 # UI host
 node = nodes.get('ui')

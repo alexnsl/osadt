@@ -343,6 +343,23 @@ class OSA:
             else:
                 raise
 
+    def add_dns_record(self, domain, host, type, data):
+        """Create DNS resource record in domain
+
+        :returns: DNS record_id
+        """
+        try:
+            res = self.api_async_call_wait('pem.createDNSRecord',
+                timeout=self.add_dns_hosting_timeout,
+                domain_name=domain, host=host, type=type, data=data)
+            return res['record_id']
+        except OpenAPIError as err:
+            # already added?
+            if err.module_id == 'dns' and err.extype_id == 2061:
+                return int(err.properties['rr_id'])
+            else:
+                raise
+
     def create_brand_web_rt(self, provdomain,
         rt_name='Shared hosting Apache (branding)',
         brand_attr='branding'):
