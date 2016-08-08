@@ -192,7 +192,6 @@ class OSA:
         net_conf = {'communication_ip': backnet, 'shared_ip': shared_ip}
         _role_params = None
         if role_params:
-        if role_params:
             _role_params = [ {'name': n, 'value': v} for n, v in role_params.items() ]
         try:
             res = self.api_async_call_wait('pem.registerSharedNode',
@@ -573,7 +572,7 @@ class OSA:
         if exclusive_ip:
             brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='exclusive')
         else:
-            brand_id = self.api_async_call_wait('pem.brandDomain', domain_name=domain, ip_type='shared')
+            brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='shared')
         return brand_id
 
 # if modeline is not enabled, run 'set modeline | doautocmd BufRead' in vim
