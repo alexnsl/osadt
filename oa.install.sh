@@ -27,7 +27,7 @@ fi
 
 ############ Optionally customized
 DISTR=/root/distr
-POATARURL=https://pa:padownload@download.automation.odin.com/oa/7.0/7.0-release/oa-7.0-9781.tar
+POATARURL=https://USER:PASSWORD@download.automation.odin.com/oa/7.0/7.0-release/oa-7.0-9781.tar
 MNMODULES="Linux Shared, APS, PBA"
 
 ############ Do not touch below
