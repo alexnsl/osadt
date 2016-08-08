@@ -1,8 +1,7 @@
 import time
 import urllib2
 import xmlrpclib
-from selenium import webdriver
-from selenium.webdriver.support.ui import Select
+import subprocess
 
 from poaupdater import openapi
 from poaupdater import uPackaging
@@ -32,6 +31,23 @@ class OSA:
         self.cp_login = cp_login
         self.cp_password = cp_password
         self.cp_url = cp_url
+
+    @staticmethod
+    def install_updates(install_updates_cmd):
+        check = ""
+        while check != "ignore":
+            try:
+                check = ""
+                subprocess.check_call(install_updates_cmd, shell=True)
+                break
+            except subprocess.CalledProcessError as e:
+                print("Install updates command: {}; failed with output {}".format(install_updates_cmd, e.output))
+                while check not in {'retry', 'abort', 'ignore'}:
+                    check = raw_input("Update installation failed, retry/abort/ignore: ")
+                if check == "retry" or check == "ignore":
+                    pass
+                if check == "abort":
+                    exit(1)
 
     def api_async_call(self, methodname, **kwargs):
         """Run async api call
@@ -175,6 +191,7 @@ class OSA:
         shared_ip = frontnet or backnet
         net_conf = {'communication_ip': backnet, 'shared_ip': shared_ip}
         _role_params = None
+        if role_params:
         if role_params:
             _role_params = [ {'name': n, 'value': v} for n, v in role_params.items() ]
         try:
@@ -376,8 +393,8 @@ class OSA:
             {'auto_host_domains': 'yes', 'ds.domain_id': str(domain_id)},
             [brand_attr])
 
-    def register_wsng(self, backnet, login, password, frontnet, webalizer=None):
-        """Register WSNG node
+    def register_ui(self, backnet, login, password, frontnet):
+        """Register UI node
 
         Reenterable
         :returns: host_id
@@ -388,13 +405,20 @@ class OSA:
             ips = [ ip['ip_address'] for ip in h['ip_addresses'] ]
             if backnet in ips:
                 return h['host_id']
-        wbl = webalizer or 'webalizer.default'
+        """wbl = webalizer or 'webalizer.default'
         res = self.api_async_call_wait('pem.web_cluster.registerStandaloneWebServer',
             timeout=self.register_shared_node_timeout,
             webserverInfo={'internal_ip': backnet, 'public_ip': frontnet,
                 'login': login, 'password': password, 'weight': 32},
             webalizer=wbl, dbInfo=[])
-        return res.get('host_id')
+        return res.get('host_id')"""
+
+        host_id = self.register_shared_node(backnet,login,password,frontnet)
+        self.install_package(host_id,'branding','other')
+        self.install_package(host_id,'pui-war','other')
+        return host_id
+
+
 
     def add_ui(self, cluster_id):
         """Add UI service to NG cluster
@@ -409,16 +433,14 @@ class OSA:
         
         :returns: host_id
         """
-        host_id = self.register_shared_node(backnet, login, password, frontnet, new_hostname)
-        self.install_package(host_id, 'bind9', 'service')
-        return host_id
+        return self.register_shared_node(backnet, login, password, frontnet, new_hostname, role='DNS_BIND')
 
     def register_linpps(self, backnet, login, password, frontnet):
         """Register linpps
         
         :returns: host_id
         """
-        host_id = self.register_shared_node(backnet, login, password, frontnet, new_hostname)
+        host_id = self.register_shared_node(backnet, login, password, frontnet)
         self.install_package(host_id, 'PrivacyProxy', 'service')
         return host_id
 
@@ -546,60 +568,13 @@ class OSA:
             if brand['domain_name'] == domain:
                 return brand['brand_id']
         return None
- 
+
     def create_prov_brand(self, domain, exclusive_ip=False):
-        """Create brand for provider
-        
-        Reenterable
-        :returns: brand_id
-        :raises OSAError: if brand is not found after UI manipulations
-        """
-        # brand exists?
-        brand_id = self.find_brand(1, domain)
-        if brand_id:
-            return brand_id
-        driver = webdriver.PhantomJS(executable_path='phantomjs-2.1.1-linux-x86_64/bin/phantomjs')
-        # log in
-        driver.get(self.cp_url)
-        driver.switch_to.frame("loginFrame")
-        driver.find_element_by_id("inp_user").clear()
-        driver.find_element_by_id("inp_user").send_keys(self.cp_login)
-        driver.find_element_by_id("inp_password").clear()
-        driver.find_element_by_id("inp_password").send_keys(self.cp_password)
-        driver.find_element_by_id("login").click()
-        
-        # go to Settings > Brands
-        driver.switch_to.frame("leftFrame")
-        driver.find_element_by_id("click_settings").click()
-        driver.switch_to.default_content()
-        driver.switch_to.frame("mainFrame")
-        driver.find_element_by_link_text('Brands').click()
-        
-        # click Add New Brand
-        driver.find_element_by_id("branding_create").click()
-        # click "Existing domain" radio
-        driver.find_element_by_id("domain_choice_0").click()
-        # select our domain
-        Select(driver.find_element_by_id("sel_domain_name")).select_by_value(domain)
-        # click "Next"
-        driver.find_element_by_id("branding_create").click()
-        # on "Select web hosting type", click "Next"
-        driver.find_element_by_id("branding_create1").click()
-        # on "Webspace Settings" click "Next"
-        driver.find_element_by_id("apache_AddApacheDomainHandler:doNextstep").click()
-        # "Enter configuration parameters for website", check exclusive IP, if needed
         if exclusive_ip:
-            Select(driver.find_element_by_id("sel_apache_name_based")).select_by_visible_text("Exclusive IPv4")
-        # and click Next
-        driver.find_element_by_id("apache_AddApacheDomainHandler:doNextstep").click()
-        # and click Finish
-        driver.find_element_by_id("branding_BrandingMultHandler:doFinish").click()
-
-        brand_id = self.find_brand(1, domain)
-        if not brand_id:
-            raise OSAError("Cannot find brand {0} after creation".format(domain))
+            brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='exclusive')
+        else:
+            brand_id = self.api_async_call_wait('pem.brandDomain', domain_name=domain, ip_type='shared')
         return brand_id
-
 
 # if modeline is not enabled, run 'set modeline | doautocmd BufRead' in vim
 # vim: tabstop=4:softtabstop=4:shiftwidth=4:textwidth=100:expandtab:autoindent:fileformat=unix

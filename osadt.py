@@ -57,11 +57,13 @@ nodes = {
     }
 }
 
+install_updates_cmd = "/usr/local/pem/bin/pa_updates_installer --install"
 
 ############## CONFIGURATION END #################
 
 
 from osadt import OSA
+import subprocess
 osa = OSA(cp_password=cp_password)
 
 # install license
@@ -69,6 +71,9 @@ if 'licfile' in globals():
     osa.upload_license(filename=licfile)
 else:
     osa.upload_license(url=licurl)
+
+# install OSA updates
+osa.install_updates(install_updates_cmd)
 
 # add provider's domain
 domain_id = osa.add_provider_domain(provdomain)
@@ -107,16 +112,15 @@ if nses:
 # UI host
 node = nodes.get('ui')
 if node:
-    branding_host_id = osa.register_wsng(node['backnet'], login, password,
-        node['frontnet'])
-    osa.add_ui(branding_host_id)
+    branding_host_id = osa.register_ui(node['backnet'], login, password, node['frontnet'])
+    # osa.add_ui(branding_host_id)
     osa.create_attrs(brand_attr)
     osa.set_host_attrs(branding_host_id, brand_attr)
     osa.set_host_ready(branding_host_id)
     # configure RTs for branding
     bap_rt_id = osa.get_rt_id('Branding access points', 'Branding access points')
     osa.set_rt_attrs(bap_rt_id, brand_attr)
-    brand_web_rt_id = osa.create_brand_web_rt(provdomain, brand_attr=brand_attr)
+    # brand_web_rt_id = osa.create_brand_web_rt(provdomain, brand_attr=brand_attr)
     if 'cp_domain' in globals():
         osa.add_provider_domain(cp_domain)
     else:
@@ -128,7 +132,7 @@ if node:
         pool_id = osa.create_ip_pool(cp_domain, cp_ip, cp_ip, cp_ipnetmask,
             ['COMMON.BRANDING', 'SHARED.HOSTING'])
         osa.bind_ip_pool(branding_host_id, node['frontnet'], pool_id)
-    osa.create_prov_brand(cp_domain, has_exclusive_ip) 
+    osa.create_prov_brand(cp_domain, has_exclusive_ip)
  
 ######## BA deployment
 ba = nodes.get('ba')
