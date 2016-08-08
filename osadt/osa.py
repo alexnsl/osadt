@@ -26,7 +26,7 @@ class OSA:
     check_period = 5
 
     def __init__(self, cp_login='admin', cp_password=None, cp_url='http://127.0.0.1:8080/'):
-        openapi.initFromEnv(None)
+        openapi.initFromEnv()
         self.api = openapi.OpenAPI()
         self.cp_login = cp_login
         self.cp_password = cp_password
