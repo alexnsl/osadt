@@ -9,6 +9,7 @@ from poaupdater import uSysDB
 from poaupdater.openapi import OpenAPIError
 
 import poaupdater.uLogging
+from poaupdater.uConfig import *
 poaupdater.uLogging.log_to_console = False
 poaupdater.uLogging.logfile = open('poaupdater.log', 'w')
 
@@ -26,7 +27,8 @@ class OSA:
     check_period = 5
 
     def __init__(self, cp_login='admin', cp_password=None, cp_url='http://127.0.0.1:8080/'):
-        openapi.initFromEnv()
+        config = Config()
+        openapi.initFromEnv(config)
         self.api = openapi.OpenAPI()
         self.cp_login = cp_login
         self.cp_password = cp_password
