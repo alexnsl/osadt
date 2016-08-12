@@ -1,4 +1,4 @@
-#!/bin/bash
+os  #!/bin/bash
 ############### OSA installation shell script
 ############### run it on LINMN
 

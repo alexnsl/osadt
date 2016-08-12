@@ -10,8 +10,7 @@ from poaupdater.openapi import OpenAPIError
 
 import poaupdater.uLogging
 from poaupdater.uConfig import *
-poaupdater.uLogging.log_to_console = False
-poaupdater.uLogging.logfile = open('poaupdater.log', 'w')
+poaupdater.uLogging.log_to_console = True
 
 
 class OSAError(Exception):
@@ -204,7 +203,8 @@ class OSA:
         except OpenAPIError as err:
             # node is registered already?
             if err.module_id == 'SharedNodeRegistrator' and err.extype_id == 13:
-                return int(err.properties['host_id'])
+                host = self.api_async_call_wait('pem.getHosts',ip_address=backnet)
+                return int(self.get_hostid_by_ip(backnet))
             else:
                 raise
         return res.get('host_id')
@@ -401,11 +401,7 @@ class OSA:
         :returns: host_id
         """
         # check if host with this backnet ip exists
-        hosts = self.api_async_call_wait('pem.getHosts')
-        for h in hosts:
-            ips = [ ip['ip_address'] for ip in h['ip_addresses'] ]
-            if backnet in ips:
-                return h['host_id']
+
         """wbl = webalizer or 'webalizer.default'
         res = self.api_async_call_wait('pem.web_cluster.registerStandaloneWebServer',
             timeout=self.register_shared_node_timeout,
@@ -419,7 +415,13 @@ class OSA:
         self.install_package(host_id,'pui-war','other')
         return host_id
 
-
+    def get_hostid_by_ip(self,backnet):
+        hosts = self.api_async_call_wait('pem.getHosts')
+        for h in hosts:
+            ips = [ ip['ip_address'] for ip in h['ip_addresses'] ]
+            if backnet in ips:
+                return h['host_id']
+        return -1
 
     def add_ui(self, cluster_id):
         """Add UI service to NG cluster
