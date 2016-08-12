@@ -10,8 +10,8 @@ from poaupdater.openapi import OpenAPIError
 
 import poaupdater.uLogging
 from poaupdater.uConfig import *
-poaupdater.uLogging.log_to_console = True
-
+poaupdater.uLogging.log_to_console = False
+poaupdater.uLogging.logfile = open('poaupdater.log', 'w')
 
 class OSAError(Exception):
     pass
