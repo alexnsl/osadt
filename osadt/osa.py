@@ -374,7 +374,7 @@ class OSA:
         except OpenAPIError as err:
             # already added?
             if err.module_id == 'dns' and err.extype_id == 2061:
-                return int(err.properties['rr_id'])
+                return 0
             else:
                 raise
 
