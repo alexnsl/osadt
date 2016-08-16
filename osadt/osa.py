@@ -20,7 +20,7 @@ class OSAError(Exception):
 class OSA:
 
     api_sync_timeout = 30
-    register_shared_node_timeout = 600
+    register_shared_node_timeout = 1200
     install_package_timeout = 300
     add_dns_hosting_timeout = 330
     check_period = 5

@@ -67,24 +67,30 @@ osa = OSA(cp_password=cp_password)
 
 # install license
 if 'licfile' in globals():
+    print("Installing license from file " + licfile)
     osa.upload_license(filename=licfile)
 else:
+    print("Installing license from URL " + licurl)
     osa.upload_license(url=licurl)
 
 # install OSA updates
+print("Installing avalible updates")
 osa.install_updates(install_updates_cmd)
 
 # add provider's domain
+print("Creating provider's domain")
 domain_id = osa.add_provider_domain(provdomain)
 
 # privacy proxy
 node = nodes.get('linpps')
 if node:
+    print("Adding privacy proxy " + node['backnet'])
     osa.register_linpps(node['backnet'], login, password, node['frontnet'])
 
 # linpgh
 node = nodes.get('linpgh')
 if node:
+    print("Adding Linux provisioning getaway " + node['backnet'])
     osa.create_attrs(linpgh_attr)
     node_id = osa.register_shared_node(node['backnet'], login, password, node['frontnet'])
     osa.set_host_attrs(node_id, linpgh_attr)
@@ -95,6 +101,7 @@ nses = nodes.get('nses')
 if nses:
     ns_hostnames = [node['hostname'] for node in nses]
     for node in nses:
+        print("Adding DNS server " + node['backnet'])
         osa.register_dns(node['backnet'], login, password, node['frontnet'],
             new_hostname=node.get('hostname'))
     osa.create_dns_rt(*ns_hostnames)
@@ -111,6 +118,7 @@ if nses:
 # UI host
 node = nodes.get('ui')
 if node:
+    print("Adding UI server " + node['backnet'])
     branding_host_id = osa.register_ui(node['backnet'], login, password, node['frontnet'])
     # osa.add_ui(branding_host_id)
     osa.create_attrs(brand_attr)
@@ -136,9 +144,12 @@ if node:
 ######## BA deployment
 ba = nodes.get('ba')
 if ba:
+    print("Adding BA Database server " + ba['db']['backnet'])
     osa.register_badb(ba['db']['backnet'], login, password, ba['app']['backnet'])
+    print("Adding BA Application server " + ba['app']['backnet'])
     osa.register_baapp(ba['app']['backnet'], login, password, ba['app']['frontnet'],
         ba['app']['hostname'])
+    print("Adding BA Store server " + ba['store']['backnet'])
     osa.register_store(ba['store']['backnet'], login, password, ba['store']['frontnet'],
         ba['store'].get('hostname')) 
 
