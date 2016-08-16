@@ -411,6 +411,23 @@ class OSA:
         return res.get('host_id')"""
 
         host_id = self.register_shared_node(backnet,login,password,frontnet)
+        # need to install httpd and mod_ssl manually on the target host.
+        install_cmd = "/usr/local/pem/bin/pleskd_ctl -f /usr/local/pem/etc/pleskd.props processHCL install.hcl" + str(host_id)
+        check = ""
+        while check != "ignore":
+            try:
+                check = ""
+                subprocess.check_call(install_cmd, shell=True)
+                break
+            except subprocess.CalledProcessError as e:
+                print("Installation of httpd/mod_ssl: {}; failed with output {}".format(install_cmd, e.output))
+                while check not in {'retry', 'abort', 'ignore'}:
+                    check = raw_input("retry/abort/ignore: ")
+                if check == "retry" or check == "ignore":
+                    pass
+                if check == "abort":
+                    exit(1)
+
         self.install_package(host_id,'branding','other')
         self.install_package(host_id,'pui-war','other')
         return host_id
