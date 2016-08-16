@@ -581,11 +581,19 @@ class OSA:
         return None
 
     def create_prov_brand(self, domain, exclusive_ip=False):
-        if exclusive_ip:
-            brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='exclusive')
+        con = uSysDB.connect()
+        cur = con.cursor()
+        cur.execute("SELECT brand_id FROM brands WHERE brand_name=" + str(domain))
+        brand_id = cur.fetchall()
+        con.close()
+        if brand_id:
+            return brand_id
         else:
-            brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='shared')
-        return brand_id
+            if exclusive_ip:
+                brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='exclusive')
+            else:
+                brand_id = self.api_async_call_wait('pem.brandDomain',domain_name=domain,ip_type='shared')
+            return brand_id
 
 # if modeline is not enabled, run 'set modeline | doautocmd BufRead' in vim
 # vim: tabstop=4:softtabstop=4:shiftwidth=4:textwidth=100:expandtab:autoindent:fileformat=unix
