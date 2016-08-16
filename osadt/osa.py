@@ -420,7 +420,7 @@ class OSA:
                 if check == "abort":
                     exit(1)
 
-        self.install_package(host_id,'branding', 'other')
+        self.api_async_call('pem.packaging.installPackageByName',host_id=host_id,pname='branding', ptype='other')
         return host_id
 
     def get_hostid_by_ip(self,backnet):
