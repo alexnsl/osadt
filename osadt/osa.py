@@ -583,7 +583,7 @@ class OSA:
     def create_prov_brand(self, domain, exclusive_ip=False):
         con = uSysDB.connect()
         cur = con.cursor()
-        cur.execute("SELECT brand_id FROM brands WHERE brand_name=" + str(domain))
+        cur.execute("SELECT brand_id FROM brands WHERE brand_name='" + str(domain) + "'")
         brand_id = cur.fetchall()
         con.close()
         if brand_id:
