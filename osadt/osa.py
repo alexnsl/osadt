@@ -412,7 +412,7 @@ class OSA:
 
         host_id = self.register_shared_node(backnet,login,password,frontnet)
         # need to install httpd and mod_ssl manually on the target host.
-        install_cmd = "/usr/local/pem/bin/pleskd_ctl -f /usr/local/pem/etc/pleskd.props processHCL install.hcl" + str(host_id)
+        install_cmd = "/usr/local/pem/bin/pleskd_ctl -f /usr/local/pem/etc/pleskd.props processHCL install.hcl " + str(host_id)
         check = ""
         while check != "ignore":
             try:
