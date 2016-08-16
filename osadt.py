@@ -63,7 +63,6 @@ install_updates_cmd = "/usr/local/pem/bin/pa_updates_installer --install"
 
 
 from osadt import OSA
-import subprocess
 osa = OSA(cp_password=cp_password)
 
 # install license

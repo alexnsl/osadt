@@ -402,14 +402,6 @@ class OSA:
         """
         # check if host with this backnet ip exists
 
-        """wbl = webalizer or 'webalizer.default'
-        res = self.api_async_call_wait('pem.web_cluster.registerStandaloneWebServer',
-            timeout=self.register_shared_node_timeout,
-            webserverInfo={'internal_ip': backnet, 'public_ip': frontnet,
-                'login': login, 'password': password, 'weight': 32},
-            webalizer=wbl, dbInfo=[])
-        return res.get('host_id')"""
-
         host_id = self.register_shared_node(backnet,login,password,frontnet)
         # need to install httpd and mod_ssl manually on the target host.
         install_cmd = "/usr/local/pem/bin/pleskd_ctl -f /usr/local/pem/etc/pleskd.props processHCL install.hcl " + str(host_id)
@@ -428,7 +420,7 @@ class OSA:
                 if check == "abort":
                     exit(1)
 
-        self.api_async_call_wait('pem.packaging.installPackageByName',host_id=host_id,pname='branding', ptype='other')
+        self.install_package(host_id,'branding', 'other')
         return host_id
 
     def get_hostid_by_ip(self,backnet):
