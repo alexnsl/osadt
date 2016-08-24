@@ -43,8 +43,9 @@ fi
 
 if [ ! -f "$DISTR/oa-7.0-9781.tar" ]; then
 	wget --no-check-certificate --continue --directory-prefix=$DISTR $POATARURL
-	tar --extract --file=$POATAR --directory=$DISTR
 fi
+
+tar --extract --file=$POATAR --directory=$DISTR
 
 ###### prereqs
 # remove uncompatible java rpms
