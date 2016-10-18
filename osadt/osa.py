@@ -420,6 +420,7 @@ class OSA:
                 if check == "abort":
                     exit(1)
 
+        self.api_async_call('pem.packaging.installPackageByName',host_id=host_id,pname='pau-jboss', ptype='other')
         self.api_async_call('pem.packaging.installPackageByName',host_id=host_id,pname='branding', ptype='other')
         return host_id
 
