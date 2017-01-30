@@ -61,7 +61,7 @@ class OSA:
         result = method(**kwargs)
         self.api.commit()
         return request_id, result
-    
+
     def api_async_call_wait(self, methodname, timeout=None, **kwargs):
         """Run async api call and wait till execution
 
@@ -109,7 +109,7 @@ class OSA:
 
     def get_domain(self, name):
         """Find domain by name
-        
+
         :returns: tuple (domain_id, owner_id)
         """
         try:
@@ -226,7 +226,7 @@ class OSA:
         if properties is None:
             proplist = []
         else:
-            proplist = [ { "name" : name, "value" : value } 
+            proplist = [ { "name" : name, "value" : value }
                 for (name, value) in properties.items() ]
         res = self.api_async_call_wait('pem.packaging.installPackageSync',
             timeout=self.install_package_timeout,
@@ -248,7 +248,7 @@ class OSA:
 
     def set_host_ready(self, host_id, ready=True):
         """Set host ready to provide
-        
+
         :param ready: if False - unset
         """
         self.api_async_call_wait('pem.setHostReadyToProvide',
@@ -305,7 +305,7 @@ class OSA:
         """Create Resource Type
 
         Reenterable
-        
+
         :param params: = {'param_name': 'param_value', ...}
         :returns: rt_id
         """
@@ -323,7 +323,7 @@ class OSA:
 
     def create_dns_rt(self, *ns_hostnames):
         """Create DNS Hosting Resource Type
-        
+
         :param ns_hostnames: list of nameservers to use
         :returns: rt_id
         """
@@ -338,14 +338,14 @@ class OSA:
             _ns_hostnames['ns' + str(i)+ '_hostname'] = name
         dns_config_id = self.api_async_call_wait('pem.createDNSHostingConfiguration',
             refresh=14400, retry=7200, expire=2419200, min_ttl=3600, **_ns_hostnames)
-        return self.create_rt('DNS Hosting', 'DNS Hosting', 
+        return self.create_rt('DNS Hosting', 'DNS Hosting',
             {'auto_host_domains': 'yes', 'configuration_id': str(dns_config_id)})
 
     def add_dns_hosting(self, domain, dns_rt_id=None, dns_rt_name='DNS Hosting'):
         """Add dns hosting to domain
 
         :param dns_rt_id: rt_id of dns hosting resource, optional
-        :param dns_rt_name: name of dns hosting resource, predefined 
+        :param dns_rt_name: name of dns hosting resource, predefined
         """
         dom_id, owner_id = self.get_domain(domain)
         if not dns_rt_id:
@@ -442,14 +442,14 @@ class OSA:
 
     def register_dns(self, backnet, login, password, frontnet, new_hostname=None):
         """Register lindns
-        
+
         :returns: host_id
         """
         return self.register_shared_node(backnet, login, password, frontnet, new_hostname, role='DNS_BIND')
 
     def register_linpps(self, backnet, login, password, frontnet):
         """Register linpps
-        
+
         :returns: host_id
         """
         host_id = self.register_shared_node(backnet, login, password, frontnet)
@@ -489,7 +489,7 @@ class OSA:
 
     def get_ip_pool(self, name):
         """Get IP pool from database
-        
+
         :returns: pool_id
         """
         con = uSysDB.connect()
@@ -518,7 +518,7 @@ class OSA:
 
     def get_host_ips(self, host_id):
         """Get host IPs and NICs from database
-        
+
         :returns: [[ip, if_id],..]
         """
         con = uSysDB.connect()
@@ -540,7 +540,7 @@ class OSA:
 
     def find_ip_nic(self, host_id, ip):
         """Find NIC which has ip assigned
-        
+
         :returns: if_id
         """
         for if_ip, if_id in self.get_host_ips(host_id):
@@ -564,7 +564,7 @@ class OSA:
         except OpenAPIError as err:
             # already attached?
             if (err.module_id == 'IPManager' and err.extype_id == 54 and
-                err.properties['pool_id'] == str(pool_id)):
+                err.properties['pool_id'] == pool_id):
                 return
             else:
                 raise
